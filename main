@@ -1,0 +1,74 @@
+import random
+import webbrowser
+import tkinter as tk
+from googleapiclient.discovery import build
+from PIL import Image, ImageTk
+
+API_KEY = this is personal :)
+PLAYLIST_ID = 'PLn-fw0XMQ3yuCY4elRcEeYXUT_7ZIopxw'
+
+def get_playlist_videos(api_key, playlist_id):
+    youtube = build('youtube', 'v3', developerKey=api_key)
+
+    request = youtube.playlistItems().list(
+        part = 'snippet',
+        playlistId=playlist_id,
+        maxResults = 50
+    )
+    videos = []
+
+    while request:
+        response = request.execute()
+        videos += response['items']
+        request = youtube.playlistItems().list_next(request, response)
+    return videos
+
+def select_random(videos):
+    video = random.choice(videos)
+    video_id = video['snippet']['resourceId']['videoId']
+    return f'https://www.youtube.com/watch?v={video_id}'
+
+def open_the_video():
+    videos = get_playlist_videos(API_KEY, PLAYLIST_ID)
+    if not videos:
+        print("No such video found in the playlist")
+        return
+
+    random_video_url = select_random(videos)
+    print(f"Selected video URL: {random_video_url}")
+    webbrowser.open(random_video_url)
+
+def main():
+
+    root = tk.Tk("")
+    root.title("Study Mode")
+
+
+    window_height = 600
+    window_width = 600
+
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    x = (screen_width - window_width) // 2
+    y = (screen_height - window_height) // 2
+
+    root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+    image = Image.open(r"")
+    image = image.resize((window_width, window_height), Image.LANCZOS)
+    background_image = ImageTk.PhotoImage(image)
+
+    canvas = tk.Canvas(root, width=window_width, height=window_height)
+    canvas.pack(fill="both", expand=True)
+    canvas.create_image(0, 0, image=background_image, anchor="nw")
+
+    button = tk.Button(root, text="Let's study",font=("Times new roman", 28), bg="white" ,command=open_the_video)
+    canvas.create_window(window_width//2, window_height//2, window=button)
+
+    root.update_idletasks()
+
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
